@@ -100,6 +100,7 @@ class TheGame:
 
         self.players_turn = [1, 0]
         self.scores = [1] * (players_num + 1)
+        self.pass_counter = 0
 
     def whose_turn(self):
         return self.players_turn[0]
@@ -151,6 +152,8 @@ class TheGame:
         self.next_player(move_id)
 
     def is_over(self):
+        if self.pass_counter == self.players_num:
+            return True
         counter = 0
         for score in self.scores[1:]:
             if score > 0:
@@ -159,7 +162,10 @@ class TheGame:
 
     def winner(self):
         if self.is_over():
-            return max(self.scores)
+            if self.pass_counter == self.players_num:
+                return -1
+            else:
+                return max(self.scores)
 
 
 
