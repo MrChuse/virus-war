@@ -47,6 +47,14 @@ class Field:
     def out_of_bounds(self, x, y):
         return not (0 <= x < self.field_size and 0 <= y < self.field_size)
 
+    def touching_allies(self, player, coords):
+        for i in (-1, 0, 1):
+            for j in (-1, 0, 1):
+                if not (self.out_of_bounds(coords[0] + i, coords[1] + j)):
+                    if self.field[coords[0] + i][coords[1] + j] == player:
+                        return True
+        return False
+
     def is_possible(self, player, move):
         move_id, coords = move
         if len(coords) != 2:
@@ -54,27 +62,20 @@ class Field:
         if self.out_of_bounds(coords[0], coords[1]):
             raise OutOfBoundsError('coords shoud be from 0 to field_size')
         #print(player)
-        if move_id == move_ids.PLACE: #can place on free spots
+        if move_id == move_ids.PLACE: #can place on free spots and touching allies
             if self.field[coords[0]][coords[1]] == 0:
-                return True
+                if self.touching_allies(player, coords):
+                    return True
+                else:
+                    raise NoNeighbourAlliesError("Can't place allies without touching them")
             else:
                 raise CellOccupiedError('Can place only in free cells')
         elif move_id == move_ids.KILL: #cant kill dead viruses and allies
             if (self.field[coords[0]][coords[1]] <= 0 or self.field[coords[0]][coords[1]] == player):
                 raise KillWrongCellError('You should kill opponents cells')
             else:
-                #print('inside the Else', player, move)
-                for i in (-1, 0, 1):
-                    for j in (-1, 0, 1):
-                        #print(f'i={i}  j={j}')
-                        if not (self.out_of_bounds(coords[0] + i, coords[1] + j)):
-                            if self.field[coords[0] + i][coords[1] + j] == player:
-                                return True
-                            #else:
-                                #print(f'for player {player} False')
-                        #else:
-                            #print('inside the else in the prev else')
-                #print('just before the raise')
+                if self.touching_allies(player, coords):
+                    return True
                 raise NoNeighbourAlliesError("can't kill cells without touching them")
 
                 #return any([(not (self.out_of_bounds(coords[0] + i, coords[1] + j)) and self.field[coords[0] + i][coords[1] + j] == player and ) for i in (-1, 0, 1) for j in (-1, 0, 1)])
